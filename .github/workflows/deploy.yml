@@ -1,0 +1,30 @@
+name: Deploy to Yandex Cloud
+
+on: push
+
+env:
+  ADMIN_ID: 222594823
+
+jobs:
+  deploy:
+    name: Deploy Cloud Function
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Deploy
+      - uses: goodsmileduck/yandex-serverless-action@v1
+        with:
+          token: ${{ secrets.TOKEN }}
+          function_id: 'd4eot9caq0j29va7i2b4'
+          runtime: 'python37'
+          memory: '128'
+          entrypoint: 'main.handler'
+          environment: AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }},AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }},BOT_TOKEN=${{ secrets.BOT_TOKEN }},admin_id=${{ env.ADMIN_ID }}
+          source: '.'
+          exclude: 'README.md'

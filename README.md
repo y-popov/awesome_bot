@@ -1,0 +1,1 @@
+![status](https://github.com/y-popov/awesome_bot/actions/workflows/deploy.yml/badge.svg)
