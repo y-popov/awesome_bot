@@ -1,4 +1,4 @@
-name: Deploy to Yandex Cloud
+name: CI/CD
 
 on: push
 
@@ -6,18 +6,37 @@ env:
   ADMIN_ID: 222594823
 
 jobs:
-  deploy:
-    name: Deploy Cloud Function
+  test:
+    name: Tests
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7.6'
+      - name: Install dependencies
+        run: |
+          pip install pytest pytest-cov
+          pip install -r requirements.txt
+      - name: Test with pytest
+        env:
+          DADATA_TOKEN: ${{ secrets.DADATA_TOKEN }}
+          DADATA_SECRET: ${{ secrets.DADATA_SECRET }}
+        run: |
+          pytest
+
+  deploy:
+    name: Deploy to Yandex Cloud
+    runs-on: ubuntu-latest
+    needs: test
     permissions:
       packages: write
       contents: read
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Deploy
+      - name: Deploy Cloud Function
         uses: goodsmileduck/yandex-serverless-action@v1
         with:
           token: ${{ secrets.OAUTH_TOKEN }}

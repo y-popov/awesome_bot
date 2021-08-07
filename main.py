@@ -3,6 +3,7 @@ import json
 import boto3
 import random
 import requests
+from dadata import Dadata
 
 bot_token = os.getenv('BOT_TOKEN')
 admin_id = os.getenv('ADMIN_ID')
@@ -13,6 +14,10 @@ s3 = boto3.session.Session().client(
 trigger_invokes = list(range(10, 19, 2))
 chance = 1 / (len(trigger_invokes) + 1)
 tg_url = 'https://api.telegram.org'
+
+dadata_token = os.getenv('DADATA_TOKEN')
+dadata_secret = os.getenv('DADATA_SECRET')
+dadata = Dadata(dadata_token, dadata_secret)
 
 markdown_escape = str.maketrans(
     {'=': r'\=', '-': r'\-', '.': r'\.', '_': r'\_',
@@ -166,13 +171,18 @@ def generate_awesome_message(user):
         return message
 
 
+def get_dadata_gender(name: str, dadata: Dadata) -> str:
+    res = dadata.clean(name="name", source=name)
+    return res['gender']
+
+
 start_message = 'Этот бот может примерно раз в день в случайное время отправлять вам приятное сообщение. ' \
                 'Если вы согласны, нужно подписаться. Отписаться можно в любой момент. Нажмите /help'
 help_message = 'Чтобы подписаться, нажмите /subscribe' + '\n' \
-                                                         'Чтобы отписаться, нажмите /unsubscribe'
+               'Чтобы отписаться, нажмите /unsubscribe'
 info_message = ''
 subscribe_message = 'Вы подписались! Отныне начнут приходить сообщения.' + '\n' \
-                                                                           'Не волнуйся, сообщения будут. Чтобы они были приятными, о них нужно забыть'
+                    'Не волнуйся, сообщения будут. Чтобы они были приятными, о них нужно забыть'
 unsubscribe_message = 'Вы отписались, сообщения больше не будут приходить'
 fail_subscribe_message = 'Вы уже подписаны'
 fail_unsubscribe_message = 'Вы ещё не подписаны'
