@@ -12,6 +12,8 @@ env:
   YC_TOKEN: ${{ secrets.OAUTH_TOKEN }}
   YC_CLOUD_ID: b1gortsj983lesf6o0ll
   YC_FOLDER_ID: b1gg9v30c1mpfe9msdcu
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 jobs:
   terraform:
