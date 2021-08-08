@@ -18,6 +18,17 @@ provider "yandex" {
   zone = "ru-central1-a"
 }
 
-data "yandex_function_trigger" "timer" {
-  trigger_id = "a1siuespk6gqpg832no6"
+data "yandex_function" "bot" {
+  name = "awesome-bot"
+}
+
+resource "yandex_function_trigger" "timer" {
+  name        = "born-be-random"
+  description = "Imitate function random invocation"
+  timer {
+    cron_expression = "0 7-15/2 ? * * *"
+  }
+  function {
+    id = data.yandex_function.bot.id
+  }
 }
