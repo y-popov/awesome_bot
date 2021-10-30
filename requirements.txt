@@ -1,3 +1,3 @@
-boto3
-dadata
-requests
+boto3==1.18.14
+dadata==20.7.0
+requests==2.26.0
