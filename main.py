@@ -4,6 +4,7 @@ import boto3
 import random
 import requests
 from dadata import Dadata
+from utils import load_users, dump_users, load_complements
 
 bot_token = os.getenv('BOT_TOKEN')
 admin_id = os.getenv('ADMIN_ID')
@@ -15,9 +16,8 @@ trigger_invokes = list(range(10, 19, 2))
 chance = 1 / (len(trigger_invokes) + 1)
 tg_url = 'https://api.telegram.org'
 
-dadata_token = os.getenv('DADATA_TOKEN')
-dadata_secret = os.getenv('DADATA_SECRET')
-dadata = Dadata(dadata_token, dadata_secret)
+dadata = Dadata(token=os.getenv('DADATA_TOKEN'),
+                secret=os.getenv('DADATA_SECRET'))
 
 markdown_escape = str.maketrans(
     {'=': r'\=', '-': r'\-', '.': r'\.', '_': r'\_',
@@ -29,7 +29,7 @@ markdown_escape = str.maketrans(
 
 def handler(event, context):
     if 'messages' in event:
-        # сработал тригер
+        # сработал триггер
         # с вероятностью chance отправляем сообщения
         if random.random() < chance:
             print('Рассылаю сообщения...')
@@ -54,17 +54,18 @@ def handler(event, context):
             res = help_message
 
         elif tg_text.startswith('/subscribe'):
-            if user in users:
+            if user['id'] in {x['id'] for x in users}:
                 res = fail_subscribe_message
             else:
                 users.append(user)
-                dump_users(users)
+                dump_users(users, s3=s3, dadata=dadata)
                 res = subscribe_message
 
         elif tg_text.startswith('/unsubscribe'):
-            if user in users:
-                users.remove(user)
-                dump_users(users)
+            user = [x for x in users if x['id'] == user['id']]
+            if len(user) > 0:
+                users.remove(user[0])
+                dump_users(users, s3=s3, dadata=dadata)
                 res = unsubscribe_message
             else:
                 res = fail_unsubscribe_message
@@ -118,29 +119,6 @@ def handler(event, context):
         }
 
 
-def load_users():
-    resp = s3.get_object(Bucket='mad-bucket', Key='awesome_users.json')
-    return json.load(resp['Body'])
-
-
-def dump_users(user_list):
-    resp = s3.put_object(Bucket='mad-bucket', Key='awesome_users.json',
-                         Body=json.dumps(user_list))
-
-
-# загружает текст из всех complements_ файлов
-def load_complements():
-    complements = []
-    keys = s3.list_objects_v2(Bucket='mad-bucket',
-                              Prefix='complements_')
-    for key in keys['Contents']:
-        resp = s3.get_object(Bucket='mad-bucket', Key=key['Key'])
-        text = resp['Body'].read().decode('utf8')
-        complements.extend(text.splitlines())
-
-    return complements
-
-
 # формирует обращение случайным образом с обработкой Рыжа
 def get_greeting(user):
     greetings = ['', user['first_name']]
@@ -171,11 +149,6 @@ def generate_awesome_message(user):
         return message
 
 
-def get_dadata_gender(name: str, dadata: Dadata) -> str:
-    res = dadata.clean(name="name", source=name)
-    return res['gender']
-
-
 start_message = 'Этот бот может примерно раз в день в случайное время отправлять вам приятное сообщение. ' \
                 'Если вы согласны, нужно подписаться. Отписаться можно в любой момент. Нажмите /help'
 help_message = 'Чтобы подписаться, нажмите /subscribe' + '\n' \
@@ -187,5 +160,5 @@ unsubscribe_message = 'Вы отписались, сообщения больш�
 fail_subscribe_message = 'Вы уже подписаны'
 fail_unsubscribe_message = 'Вы ещё не подписаны'
 
-users = load_users()
-complement_list = load_complements()
+users = load_users(s3=s3)
+complement_list = load_complements(s3=s3)
