@@ -30,7 +30,7 @@ def load_complements(s3):
     for key in keys['Contents']:
         resp = s3.get_object(Bucket='mad-bucket', Key=key['Key'])
         text = resp['Body'].read().decode('utf8')
-        complements.extend(text.splitlines())
+        complements.extend(json.loads(text))
 
     return complements
 
