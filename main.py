@@ -16,9 +16,8 @@ trigger_invokes = list(range(10, 19, 2))
 chance = 1 / (len(trigger_invokes) + 1)
 tg_url = 'https://api.telegram.org'
 
-dadata_token = os.getenv('DADATA_TOKEN')
-dadata_secret = os.getenv('DADATA_SECRET')
-dadata = Dadata(dadata_token, dadata_secret)
+dadata = Dadata(token=os.getenv('DADATA_TOKEN'),
+                secret=os.getenv('DADATA_SECRET'))
 
 markdown_escape = str.maketrans(
     {'=': r'\=', '-': r'\-', '.': r'\.', '_': r'\_',
@@ -63,8 +62,9 @@ def handler(event, context):
                 res = subscribe_message
 
         elif tg_text.startswith('/unsubscribe'):
-            if user in users:
-                users.remove(user)
+            user = [x for x in users if x['id'] == user['id']]
+            if len(user) > 0:
+                users.remove(user[0])
                 dump_users(users, s3=s3, dadata=dadata)
                 res = unsubscribe_message
             else:

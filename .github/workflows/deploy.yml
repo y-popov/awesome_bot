@@ -16,14 +16,14 @@ jobs:
           python-version: '3.7.6'
       - name: Install dependencies
         run: |
-          pip install pytest pytest-cov
           pip install -r requirements.txt
+          pip install -r tests/requirements.txt
       - name: Test with pytest
         env:
           DADATA_TOKEN: ${{ secrets.DADATA_TOKEN }}
           DADATA_SECRET: ${{ secrets.DADATA_SECRET }}
         run: |
-          pytest
+          python -m pytest tests
 
   deploy:
     name: Deploy to Yandex Cloud
@@ -44,6 +44,12 @@ jobs:
           runtime: 'python37'
           memory: '128'
           entrypoint: 'main.handler'
-          environment: AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }},AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }},BOT_TOKEN=${{ secrets.BOT_TOKEN }},admin_id=${{ env.ADMIN_ID }}
+          environment:
+            "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }},\
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }},\
+            BOT_TOKEN=${{ secrets.BOT_TOKEN }},\
+            admin_id=${{ env.ADMIN_ID }},\
+            DADATA_TOKEN=${{ secrets.DADATA_TOKEN }},\
+            DADATA_SECRET=${{ secrets.DADATA_SECRET }}"
           source: '.'
           exclude: 'README.md,scripts,.git,.github'
