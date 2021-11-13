@@ -1,8 +1,19 @@
+import os
 import json
 import logging
-from typing import List
+import requests
 from dadata import Dadata
+from typing import List, Dict
 from botocore.client import BaseClient
+
+tg_url = 'https://api.telegram.org'
+bot_token = os.getenv('BOT_TOKEN')
+admin_id = os.getenv('ADMIN_ID')
+markdown_escape = str.maketrans(
+    {'=': r'\=', '_': r'\_', '{': r'\{', '}': r'\}',
+     '*': r'\*', '[': r'\[', ']': r'\]', '(': r'\(',
+     ')': r'\)', '~': r'\~', '`': r'\`', '>': r'\>',
+     '#': r'\#', '+': r'\+', '|': r'\|'})
 
 
 def load_users(s3: BaseClient) -> List[dict]:
@@ -38,3 +49,10 @@ def load_complements(s3):
 def get_dadata_gender(name: str, dadata: Dadata) -> str:
     res = dadata.clean(name="name", source=name)
     return res['gender']
+
+
+def send_message(params: Dict[str, str], bot=bot_token):
+    """ Sends message in Telegram with params """
+    r = requests.get(f'{tg_url}/bot{bot}/sendMessage', params=params)
+    if r.status_code != 200:
+        logging.error(r.text)
