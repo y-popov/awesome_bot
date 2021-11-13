@@ -127,7 +127,7 @@ def get_greeting(user):
 
 # формирует сообщение целиком по шаблону случайным образом
 def generate_awesome_message(user):
-    if random.random() < 0.3:
+    if random.random() < 0.1:
         # формируем сообщение старым образом
         nouns = ['топчик', 'пушка', 'космос', 'бомба']
         epithets = ['', 'просто', 'сегодня']
@@ -139,7 +139,8 @@ def generate_awesome_message(user):
         return message.replace('  ', ' ')
     else:
         # выбираем один из комплементов
-        message = random.choice(complement_list)
+        user_gender = {'М': 'male', 'Ж': 'female'}[user['gender']]
+        message = random.choice(complement_list[user_gender])
         return message
 
 

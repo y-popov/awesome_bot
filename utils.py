@@ -34,14 +34,15 @@ def dump_users(user_list: List[dict], s3: BaseClient, dadata: Dadata):
 
 
 # загружает текст из всех complements_ файлов
-def load_complements(s3):
-    complements = []
+def load_complements(s3) -> Dict[str, List[str]]:
+    complements = {'male': [], 'female': []}
     keys = s3.list_objects_v2(Bucket='mad-bucket',
                               Prefix='complements_')
     for key in keys['Contents']:
+        gender = key['Key'].split('_')[1]
         resp = s3.get_object(Bucket='mad-bucket', Key=key['Key'])
         text = resp['Body'].read().decode('utf8')
-        complements.extend(json.loads(text))
+        complements[gender].extend(json.loads(text))
 
     return complements
 
