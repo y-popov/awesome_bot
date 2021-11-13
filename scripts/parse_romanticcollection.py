@@ -34,10 +34,10 @@ def parse_site() -> List[str]:
 
 def upload_complements(complements: List[str], s3: BaseClient):
     text = json.dumps(complements)
-    s3.put_object(Bucket='mad-bucket', Key='complements_romanticcollection.json', Body=text)
+    s3.put_object(Bucket='mad-bucket', Key='complements_female_romanticcollection.json', Body=text)
 
 
 if __name__ == '__main__':
     complements = parse_site()
     logging.info(f'Получил {len(complements)} комплиментов')
-    upload_complements( complements, s3=s3)
+    upload_complements(complements, s3=s3)
