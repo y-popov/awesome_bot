@@ -2,29 +2,27 @@ import os
 import json
 import boto3
 import random
-import requests
-from dadata import Dadata
-from utils import load_users, dump_users, load_complements
+import logging
 
-bot_token = os.getenv('BOT_TOKEN')
-admin_id = os.getenv('ADMIN_ID')
+from dadata import Dadata
+from utils import load_users, dump_users, load_complements, send_message
+from utils import markdown_escape, admin_id
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    logging.info('Skipping dotenv import..')
+
 s3 = boto3.session.Session().client(
     service_name='s3',
     endpoint_url='https://storage.yandexcloud.net'
 )
 trigger_invokes = list(range(10, 19, 2))
 chance = 1 / (len(trigger_invokes) + 1)
-tg_url = 'https://api.telegram.org'
 
 dadata = Dadata(token=os.getenv('DADATA_TOKEN'),
                 secret=os.getenv('DADATA_SECRET'))
-
-markdown_escape = str.maketrans(
-    {'=': r'\=', '-': r'\-', '.': r'\.', '_': r'\_',
-     '*': r'\*', '[': r'\[', ']': r'\]', '(': r'\(',
-     ')': r'\)', '~': r'\~', '`': r'\`', '>': r'\>',
-     '#': r'\#', '+': r'\+', '|': r'\|', '!': r'\!',
-     '{': r'\{', '}': r'\}'})
 
 
 def handler(event, context):
@@ -36,7 +34,7 @@ def handler(event, context):
             for user in users:
                 param = {'chat_id': user['id'],
                          'text': generate_awesome_message(user).translate(markdown_escape)}
-                r = requests.get(f'{tg_url}/bot{bot_token}/sendMessage', params=param)
+                send_message(params=param)
         else:
             print('Игнорирую рассылку')
 
@@ -133,8 +131,8 @@ def get_greeting(user):
 
 # формирует сообщение целиком по шаблону случайным образом
 def generate_awesome_message(user):
-    if random.random() < 0.3:
-        # формируем соощение старым образом
+    if random.random() < 0.1:
+        # формируем сообщение старым образом
         nouns = ['топчик', 'пушка', 'космос', 'бомба']
         epithets = ['', 'просто', 'сегодня']
         message = "{greeting} {epithet} {noun}".format(
@@ -145,7 +143,8 @@ def generate_awesome_message(user):
         return message.replace('  ', ' ')
     else:
         # выбираем один из комплементов
-        message = random.choice(complement_list)
+        user_gender = {'М': 'male', 'Ж': 'female'}[user['gender']]
+        message = random.choice(complement_list[user_gender])
         return message
 
 
