@@ -2,13 +2,17 @@ import os
 import json
 import boto3
 import random
+import logging
 
 from dadata import Dadata
 from utils import load_users, dump_users, load_complements, send_message
 from utils import markdown_escape, admin_id
 
-from dotenv import load_dotenv
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    logging.info('Skipping dotenv import..')
 
 s3 = boto3.session.Session().client(
     service_name='s3',
